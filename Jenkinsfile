@@ -1,59 +1,35 @@
-#!/usr/bin/env groovy
-
-def gv
-
 pipeline {
-    agent any
-	parameters {
-			choice (name: 'VERSION', choices: ['1.1.0', '1.2.0', '1.3.0'], description: '')
-			booleanParam(name: 'executeTests', defaultValue: true, description: '')
+	agent any
+	tools {
+		maven 'maven-3.9'
 	}
-    stages {
-    	stage("init") {
-		steps {
-			script {
-				gv = load "script.groovy"
-			}
-		}
-	}
-        stage("build") {
-            steps {
-	    	script {
-			gv.buildApp()
-		}
-            }
-        }
-        stage("test") {
-			when {
-				expression {
-					params.executeTests
+	stages {
+		stage("build jar") {
+			steps {
+				script {
+					echo "building the application..."
+					sh 'mvn package'
 				}
 			}
-            steps {
-                script {
-			gv.testApp()
 		}
-            }
-        }
-        stage("deploy") {
-		//input {
-		//	message "Select the environment to deploy to"
-		//	ok "Done"
-		//	parameters {
-		//		choice (name: 'ONE', choices: ['dev', 'staging', 'production'], description: '')
-		//		choice (name: 'TWO', choices: ['dev', 'staging', 'production'], description: '')
-//
-//
-//			}
-//		}
-            steps {
-	    	script {
-			env.ENV = input message: "Select the environment to deploy to", ok: "Done", parameters: [choice(name: 'ONE', choices: ['dev', 'staging', 'production'], description: '')]
-			gv.deployApp()
-			echo "Deploying to ${ENV}"
-			//echo "Deploying to ${TWO}"
+		stage("build image") {
+			steps {
+				script {
+					echo "building the docker image..."
+					withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+						sh 'dicker build -t sumitjha1/my-repo:jma-2.0 .'
+						sh "echo $PASS | docker login -u $USER --password-stdin"
+						sh 'docker push sumitjha1/my-repo:jma-2.0'
+					}
+				}
+			}
 		}
-            }
-        }
-    }   
+		stage("deploy") {
+			steps {
+				script {
+					echo "deloying the application..."
+				}
+			}
+		}
+	}
 }
