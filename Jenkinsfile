@@ -1,39 +1,34 @@
-pipeline {
-        agent any
-        stages {
-                stage('test') {
-                        steps {
-                                script {
-                                        echo "testing the application"
-                                        echo "Executing pipeline for branch $BRANCH_NAME"
-                                }
+#!/user/bin/env groovy
 
-                        }
+pipeline {
+    agent none
+    stages {
+        stage('select micro services') {
+            input {
+                message "Select all micro services to deploy"
+                ok "All selected!"
+                parameters {
+                    choice(name: 'MS1', choices: ['1.1.0', '1.2.0', '1.3.0'], description: 'input ms')
+                    choice(name: 'MS2', choices: ['1.1.0', '1.2.0', '1.3.0'], description: 'input ms')
+                    choice(name: 'MS3', choices: ['1.1.0', '1.2.0', '1.3.0'], description: 'input ms')
                 }
-                stage('build') {
-                        when {
-                                expression {
-                                        BRANCH_NAME == 'master'
-                                }
-                        }
-                        steps {
-                                script {
-                                        echo "Building the application...."
-                                }
-                        }
+            }
+            steps {
+                script {
+                    echo "Hello, ${MS1}. Hello, ${MS2}. Hello ${MS3}."
+                    MS1_TO_DEPLOY = MS1
+                    MS2_TO_DEPLOY = MS2
+                    env.MS3_TO_DEPLOY = MS3
                 }
-                stage('deploy') {
-                        when {
-                                expression {
-                                        BRANCH_NAME == 'master'
-                                }
-                        }
-                        steps {
-                                script {
-                                        echo "deploying the application...."
-                                }
-                        }
-                }
+            }
         }
+        stage('select single service') {
+            input {
+                message "Select single Micro Service t deploy?"
+                parameters {
+                    choice(name: 'MS5', choices: ['1.1.0', '1.2.0', '1.3.0'], description: 'second param with ')
+                }
+            }
+        }
+    }
 }
-//
