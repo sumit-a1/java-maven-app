@@ -1,35 +1,40 @@
+#!/user/bin/env groovy
+
 pipeline {
-	agent any
-	tools {
-		maven 'maven-3.9'
-	}
-	stages {
-		stage("build jar") {
-			steps {
-				script {
-					echo "building the application..."
-					sh 'mvn package'
-				}
-			}
-		}
-		stage("build image") {
-			steps {
-				script {
-					echo "building the docker image..."
-					withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-						sh 'dicker build -t sumitjha1/my-repo:jma-2.0 .'
-						sh "echo $PASS | docker login -u $USER --password-stdin"
-						sh 'docker push sumitjha1/my-repo:jma-2.0'
-					}
-				}
-			}
-		}
-		stage("deploy") {
-			steps {
-				script {
-					echo "deloying the application..."
-				}
-			}
-		}
-	}
+    agent none
+    stages {
+        stage('select micro services') {
+            input {
+                message "Select all micro services to deploy"
+                ok "All selected!"
+                parameters {
+                    choice(name: 'MS1', choices: ['1.1.0', '1.2.0', '1.3.0'], description: 'input ms')
+                    choice(name: 'MS2', choices: ['1.1.0', '1.2.0', '1.3.0'], description: 'input ms')
+                    choice(name: 'MS3', choices: ['1.1.0', '1.2.0', '1.3.0'], description: 'input ms')
+                }
+            }
+            steps {
+                script {
+                    echo "Hello, ${MS1}. Hello, ${MS2}. Hello ${MS3}."
+                    MS1_TO_DEPLOY = MS1
+                    MS2_TO_DEPLOY = MS2
+                    env.MS3_TO_DEPLOY = MS3
+                }
+            }
+        }
+        stage('select single service') {
+            input {
+                message "Select single Micro Service t deploy?"
+                parameters {
+                    choice(name: 'MS5', choices: ['1.1.0', '1.2.0', '1.3.0'], description: 'second param with ')
+                }
+            }
+            steps {
+                script {
+                    echo "Hello, ${MS5}."
+                    env.MS5_TO_DEPLOY =MS5
+                }
+            }
+        }
+    }
 }
