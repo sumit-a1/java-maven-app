@@ -25,7 +25,7 @@ pipeline {
         stage("build Image") {
             steps {
                 script {
-                    buildImage()
+                    buildImage 'sumitjha1/my-repo:jenkinssl-2.0'
                 }
             }
         }
