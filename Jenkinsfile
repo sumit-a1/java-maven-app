@@ -22,10 +22,12 @@ pipeline {
                 }
             }
         }
-        stage("build Image") {
+        stage("build and push image") {
             steps {
                 script {
-                    buildImage 'sumitjha1/my-repo:jenkinssl-2.0'
+                        buildImage 'sumitjha1/my-repo:jenkinssl-3.0'
+                    dockerLogin()
+                    dockerPush 'sumitjha1/my-repo:jenkinssl-3.0'
                 }
             }
         }
